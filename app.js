@@ -52,6 +52,27 @@ app.post("/renter", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+app.get('/renterinfo', async (req, res) => {
+  const { email, password } = req.query;
+
+  // Validate inputs
+  if (!email || !password) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT * FROM renter_info WHERE email = ? AND password = ?', [email, password]);
+
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
