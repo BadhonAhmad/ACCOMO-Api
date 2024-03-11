@@ -103,14 +103,12 @@ app.get('/renterinfo', async (req, res) => {
 
 app.get('/ownerinfo', async (req, res) => {
   const { email, password } = req.query;
-
   if (!email || !password) {
     res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
     return;
   }
   try {
     const results = await queryAsync('SELECT * FROM owner_info WHERE email = ? AND password = ?', [email, password]);
-
     if (results.length === 0) {
       res.status(404).json({ error: 'Record not found' });
     } else {
@@ -120,8 +118,54 @@ app.get('/ownerinfo', async (req, res) => {
     console.error('Error executing MySQL query:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-
 });
+
+app.get('/unitdetails', async (req, res) => {
+  const { code } = req.query;
+  if (!code) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT name,email,bkash,flatname,rent,gas FROM flat_info INNER JOIN owner_info ON flat_info.owner = owner_info.email AND flat_info.code = ?',[code]);
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+app.post("/rented_flats", async (req, res) => {
+  try {
+    // Extract data from the request body
+    const { tenant, email, mobile, nid, flatname, rent, gas } = req.body;
+    
+    // Perform necessary validations on the data if needed
+
+    // Example SQL query to insert data into a database table
+    const sql = "INSERT INTO rented_flats (tenant, email, mobile, nid, flatname, rent, gas) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const values = [tenant, email, mobile, nid, flatname, rent, gas];
+
+    // Execute the SQL query - you'll need to implement your own queryAsync function
+    // For instance, using a MySQL library such as mysql2
+    await queryAsync(sql, values);
+
+    // Send a success response
+    res.status(200).json({ message: "Data inserted successfully" });
+  } catch (error) {
+    // Send an error response if something goes wrong
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
 
 
 app.get('/flatdetails', async (req, res) => {
@@ -132,7 +176,7 @@ app.get('/flatdetails', async (req, res) => {
     return;
   }
   try {
-    const results = await queryAsync('SELECT rent, gas,code FROM flat_info WHERE flatname = ?',[flatname]);
+    const results = await queryAsync('SELECT * FROM flat_info INNER JOIN on renter_info WHERE flat = ?',[flatname]);
 
     if (results.length === 0) {
       res.status(404).json({ error: 'Record not found' });
@@ -144,6 +188,8 @@ app.get('/flatdetails', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
 
 
 
