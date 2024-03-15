@@ -140,6 +140,26 @@ app.get('/unitdetails', async (req, res) => {
 });
 
 
+app.get('/specificunit', async (req, res) => {
+  const { flatname } = req.query;
+  if (!flatname) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT name,email,bkash,flatname,rent,gas FROM flat_info INNER JOIN owner_info ON flat_info.owner = owner_info.email AND flat_info.flatname = ?',[flatname]);
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 app.get('/rentedlist', async (req, res) => {
   const { email } = req.query;
   if (!email) {
