@@ -140,6 +140,27 @@ app.get('/unitdetails', async (req, res) => {
 });
 
 
+app.get('/rentedlist', async (req, res) => {
+  const { email } = req.query;
+  if (!email) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT * FROM rented_flats WHERE email = ?',[email]);
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
 app.post("/rented_flats", async (req, res) => {
   try {
     // Extract data from the request body
@@ -243,4 +264,3 @@ const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`API is started on port ${PORT}`);
 });
-
