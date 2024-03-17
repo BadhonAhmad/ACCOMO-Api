@@ -181,6 +181,27 @@ app.get('/rentedlist', async (req, res) => {
 
 
 
+app.get('/flatdetails', async (req, res) => {
+  const { flatname } = req.query;
+  if (!flatname) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT * FROM rented_flats WHERE flatname = ?',[flatname]);
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
 app.post("/rented_flats", async (req, res) => {
   try {
     // Extract data from the request body
@@ -205,11 +226,54 @@ app.post("/rented_flats", async (req, res) => {
   }
 });
 
+app.put("/billstatus", async (req, res) => {
+  try {
+    // Extract data from the request body
+    const { flatname, billstatus } = req.body;
+    
+    // Perform necessary validations on the data if needed
+
+    // Example SQL query to update data in a database table
+    const sql = "UPDATE flat_info SET billstatus = ? WHERE flatname = ?";
+    const values = [billstatus, flatname];
+
+    // Execute the SQL query - you'll need to implement your own queryAsync function
+    // For instance, using a MySQL library such as mysql2
+    await queryAsync(sql, values);
+
+    // Send a success response
+    res.status(200).json({ message: "Data updated successfully" });
+  } catch (error) {
+    // Send an error response if something goes wrong
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.get('/rentedlist', async (req, res) => {
+  const { email } = req.query;
+  if (!email) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT * FROM rented_flats WHERE email = ?',[email]);
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
 
-app.get('/flatdetails', async (req, res) => {
+app.get('/billstatus', async (req, res) => {
   const { flatname } = req.query;
 
   if (!flatname) {
@@ -217,7 +281,7 @@ app.get('/flatdetails', async (req, res) => {
     return;
   }
   try {
-    const results = await queryAsync('SELECT * FROM flat_info INNER JOIN on renter_info WHERE flat = ?',[flatname]);
+    const results = await queryAsync('SELECT flatname,billstatus FROM flat_info WHERE flatname = ?',[flatname]);
 
     if (results.length === 0) {
       res.status(404).json({ error: 'Record not found' });
@@ -250,7 +314,7 @@ app.post("/createflat", async (req, res) => {
     
         let randomCode = generateRandomCode(6);
         let temp = unt +"-"+ String.fromCharCode(ch);
-        const sql = "INSERT INTO flat_info (owner, flatname, code, rent, gas) VALUES (?, ?,?, ?, ?)";
+        const sql = "INSERT INTO flat_info (owner, flatname, code, rent, gas) VALUES (?, ?, ?, ?, ?)";
         const values = [owner, temp, randomCode, rent, gas];
         await queryAsync(sql, values);
       }
