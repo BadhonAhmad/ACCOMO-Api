@@ -270,6 +270,24 @@ app.get('/rentedlist', async (req, res) => {
   }
 });
 
+app.get('/flatcode', async (req, res) => {
+  const { flatname } = req.query;
+  if (!flatname) {
+    res.status(400).json({ error: 'Bad Request: Registration number and date of birth are required' });
+    return;
+  }
+  try {
+    const results = await queryAsync('SELECT flatname, code FROM flat_info WHERE flatname = ?',[flatname]);
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Record not found' });
+    } else {
+      res.json(results);
+    }
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
